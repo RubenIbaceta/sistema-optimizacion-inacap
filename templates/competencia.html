@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-dark text-white"><h5>📌 Registrar Precios Competencia</h5></div>
+            <div class="card-body">
+                <form action="/competencia" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Selecciona Nuestro Producto</label>
+                        <select name="plato_id" class="form-select" required>
+                            {% for p in platos %}
+                            <option value="{{ p.id }}">{{ p.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nombre del Competidor</label>
+                        <input type="text" name="local_nombre" class="form-control" placeholder="Ej: Carrito Avenida Brasil" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Precio Competidor ($)</label>
+                        <input type="number" name="precio" class="form-control" placeholder="Ej: 2500" required>
+                    </div>
+                    <button type="submit" class="btn btn-dark w-100">Guardar Precio</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <h4>Precios Registrados en la Región de Valparaíso</h4>
+        
+        <table id="tablaCompetencia" class="table table-bordered bg-white shadow-sm align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Nuestro Producto</th>
+                    <th>Competidor</th>
+                    <th>Precio Detectado</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in competencias %}
+                <tr>
+                    <td>{{ c.plato.nombre }}</td>
+                    <td class="fw-bold">{{ c.local_nombre }}</td>
+                    <td class="text-primary">${{ c.precio }}</td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editComp{{ c.id }}">✏️</button>
+                        <form action="/competencia/eliminar/{{ c.id }}" method="POST" class="d-inline" onsubmit="return confirm('¿Eliminar este registro de competencia?');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">🗑️</button>
+                        </form>
+                    </td>
+                </tr>
+
+                <div class="modal fade" id="editComp{{ c.id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header bg-dark text-white">
+                                <h5 class="modal-title">Editar Registro Competencia</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <form action="/competencia/actualizar/{{ c.id }}" method="POST">
+                                <div class="modal-body">
+                                    <p class="text-muted small">Producto: <span class="fw-bold text-capitalize">{{ c.plato.nombre }}</span></p>
+                                    <div class="mb-3">
+                                        <label class="form-label">Nombre del Competidor</label>
+                                        <input type="text" name="local_nombre" class="form-control" value="{{ c.local_nombre }}" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Precio Competidor ($)</label>
+                                        <input type="number" name="precio" class="form-control" value="{{ c.precio }}" required>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="submit" class="btn btn-success">Actualizar Precio</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $('#tablaCompetencia').DataTable({
+            "pageLength": 10,  // Muestra de 10 en 10 filas
+            "language": {
+                "lengthMenu": "Mostrar _MENU_ registros por página",
+                "zeroRecords": "No se encontraron competidores",
+                "info": "Mostrando página _PAGE_ de _PAGES_",
+                "infoEmpty": "No hay registros disponibles",
+                "infoFiltered": "(filtrado de un total de _MAX_ registros)",
+                "search": "🔍 Buscar competidor o producto:",
+                "paginate": {
+                    "first": "Primero",
+                    "last": "Último",
+                    "next": "Siguiente",
+                    "previous": "Anterior"
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

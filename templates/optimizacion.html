@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h5>⚡ Resultados de Optimización (Derivadas)</h5>
+            </div>
+            <div class="card-body">
+                <h3 class="text-capitalize">{{ plato.nombre }}</h3>
+                <hr>
+                <p>Costo de Producción (C): <strong class="text-danger">${{ plato.costo_base }} CLP/u</strong></p>
+                <p>Precio Óptimo de Venta (P*): <strong class="text-success">${{ precio_optimo }} CLP/u</strong></p>
+                
+                <div class="p-3 bg-light border rounded mb-3">
+                    <div class="mb-2">
+                        <span class="text-muted small fw-bold">💰 INGRESO BRUTO ESTIMADO:</span>
+                        <h4 class="text-secondary fw-bold mb-0">${{ ingreso_total }} CLP</h4>
+                        <small class="text-muted d-block" style="font-size: 0.75rem;">(Precio Óptimo × {{ unidades_optimas }} unidades en Caja)</small>
+                    </div>
+                    <hr class="my-2">
+                    <div>
+                        <span class="text-primary small fw-bold">📈 GANANCIA NETA MÁXIMA:</span>
+                        <h3 class="text-primary fw-bold mb-0">${{ ganancia_maxima }} CLP</h3>
+                        <small class="text-primary-emphasis d-block" style="font-size: 0.75rem;">(Utilidad real libre de costos de insumos)</small>
+                    </div>
+                </div>
+                
+                <div class="p-2 bg-light border rounded mt-2">
+                    <p class="mb-1 fw-bold text-dark">Volumen de Venta Requerido:</p>
+                    <h4 class="text-dark mb-0">{{ unidades_optimas }} unidades</h4>
+                    <small class="text-muted">Cantidad de unidades para ganancia máxima.</small>
+                </div>
+
+                <div class="p-2 bg-danger-subtle border border-danger rounded mt-3 text-danger-emphasis">
+                    <p class="mb-1 fw-bold">⚠️ Umbral Crítico de Pérdida:</p>
+                    <h4 class="fw-bold mb-0">${{ precio_limite_perdida }} CLP/u</h4>
+                    <small class="text-muted-emphasis">Si cobras este monto o más, la demanda se destruye por completo entrando en pérdidas netas.</small>
+                </div>
+
+                <p class="text-muted small mt-3">Calculado mediante la condición crítica marginal: G'(p) = 0 pesos/unidad y análisis analítico de raíces G(p) = 0.</p>
+                <a href="/gestion" class="btn btn-outline-secondary btn-sm w-100 mt-3">← Volver al CRUD</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">📈 Análisis Geométrico y Económico</h5>
+                <ul class="nav nav-tabs card-header-tabs" id="graficosTabs">
+                    <li class="nav-item">
+                        <button class="nav-link active text-dark bg-light" id="btn-precio" onclick="cambiarGrafico('precio')">Precio vs Ganancia</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link text-white" id="btn-unidades" onclick="cambiarGrafico('unidades')">Unidades vs Ganancia</button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body" style="height: 450px;">
+                <div id="contenedor-precio" style="width: 100%; height: 100%;">
+                    <canvas id="graficoParabola"></canvas>
+                </div>
+                <div id="contenedor-unidades" style="width: 100%; height: 100%; display: none;">
+                    <canvas id="graficoUnidades"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Inyección de colecciones numéricas calculadas en Python
+    const datosPrecio = JSON.parse('{{ puntos_precio | tojson | safe }}');
+    const datosGanancia = JSON.parse('{{ puntos_ganancia | tojson | safe }}');
+    const datosUnidades = JSON.parse('{{ puntos_unidades | tojson | safe }}');
+
+    // CONTROL DE CONMUTACIÓN DE PESTAÑAS MANUAL (EVITA BUG DE HOVER/CONGELADO)
+    function cambiarGrafico(tipo) {
+        const btnPrecio = document.getElementById('btn-precio');
+        const btnUnidades = document.getElementById('btn-unidades');
+        const boxPrecio = document.getElementById('contenedor-precio');
+        const boxUnidades = document.getElementById('contenedor-unidades');
+
+        if (tipo === 'precio') {
+            btnPrecio.className = "nav-link active text-dark bg-light";
+            btnUnidades.className = "nav-link text-white";
+            boxPrecio.style.display = "block";
+            boxUnidades.style.display = "none";
+            grafico1.resize();
+            grafico1.update();
+        } else {
+            btnUnidades.className = "nav-link active text-dark bg-light";
+            btnPrecio.className = "nav-link text-white";
+            boxPrecio.style.display = "none";
+            boxUnidades.style.display = "block";
+            grafico2.resize();
+            grafico2.update();
+        }
+    }
+
+    // --- RENDER GRÁFICO 1: PRECIO VS GANANCIA ---
+    const ctx1 = document.getElementById('graficoParabola').getContext('2d');
+    const grafico1 = new Chart(ctx1, {
+        type: 'line',
+        data: {
+            labels: datosPrecio,
+            datasets: [{
+                label: 'Función de Ganancia G(p) en CLP',
+                data: datosGanancia,
+                borderColor: '#fe0000',
+                backgroundColor: 'rgba(254, 0, 0, 0.1)',
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: { title: { display: true, text: 'Precio de venta fijado (p) [CLP/unidad]' } },
+                y: { title: { display: true, text: 'Ganancia neta total estimada G(p) [CLP]' } }
+            }
+        }
+    });
+
+    // --- RENDER GRÁFICO 2: UNIDADES VS GANANCIA ---
+    // Mapeo estructurado de puntos coordenados (x = Cantidad, y = Utilidad)
+    const datosScatter = datosUnidades.map((uni, index) => {
+        return { x: Math.round(uni), y: datosGanancia[index] };
+    }).filter(puntos => puntos.x >= 0);
+
+    // Ordenamiento lineal de izquierda a derecha para evitar cruces extraños en Chart.js
+    datosScatter.sort((a, b) => a.x - b.x);
+
+    const ctx2 = document.getElementById('graficoUnidades').getContext('2d');
+    const grafico2 = new Chart(ctx2, {
+        type: 'line',
+        data: {
+            datasets: [{
+                label: 'Relación Volumen-Utilidad (Unidades vs Ganancia)',
+                data: datosScatter,
+                borderColor: '#0d6efd',
+                backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: { 
+                    type: 'linear',
+                    position: 'bottom',
+                    title: { display: true, text: 'Cantidad de Unidades Vendidas (Q) [Recetas Despachadas]' } 
+                },
+                y: { title: { display: true, text: 'Ganancia neta total estimada G(Q) [CLP]' } }
+            }
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-info text-white"><h5>📊 Gráfico Comparativo de Precios</h5></div>
+    <div class="card-body">
+        <div class="mb-4">
+            <label class="form-label fw-bold">Selecciona el Producto para Comparar:</label>
+            <select id="selectPlato" class="form-select" onchange="cargarGraficoComparativo()">
+                <option value="">-- Selecciona un plato --</option>
+                {% for p in platos %}
+                <option value="{{ p.id }}">{{ p.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div style="max-width: 650px; margin: 0 auto;">
+            <canvas id="graficoBarras"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+let miGrafico;
+function cargarGraficoComparativo() {
+    const platoId = document.getElementById('selectPlato').value;
+    if (!platoId) return;
+
+    fetch(`/api/datos_comparativa/${platoId}`)
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById('graficoBarras').getContext('2d');
+            if (miGrafico) { miGrafico.destroy(); }
+
+            miGrafico = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.locales,
+                    datasets: [{
+                        label: 'Precio en el Mercado ($)',
+                        data: data.precios,
+                        backgroundColor: data.locales.map((l, i) => i === 0 ? '#198754' : '#0dcaf0'),
+                        borderWidth: 1
+                    }]
+                },
+                options: { scales: { y: { beginAtZero: true } } }
+            });
+        });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-dark text-white"><h5>➕ Agregar Ingrediente</h5></div>
+            <div class="card-body">
+                <form action="/ingrediente/nuevo" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre del Insumo</label>
+                        <input type="text" name="nombre" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Costo unitario ($)</label>
+                        <input type="number" name="precio_costo" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-dark w-100">Guardar Insumo</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-dark text-white"><h5>🍔 Crear Nuevo Plato Receta</h5></div>
+            <div class="card-body">
+                <form action="/plato/nuevo" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Nombre del Plato</label>
+                        <input type="text" name="nombre" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Precio Inicial Venta ($)</label>
+                        <input type="number" name="precio_actual" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Seleccionar Ingredientes Base</label>
+                        <div class="border p-2 rounded bg-light" style="max-height: 150px; overflow-y: auto;">
+                            {% for ing in ingredientes %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="ingredientes" value="{{ ing.id }}">
+                                <label class="form-check-label">{{ ing.nombre }} (+${{ ing.precio_costo }})</label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Estructurar Receta</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <h4>Nuestra Carta y Costos de Producción</h4>
+        <table class="table table-bordered bg-white shadow-sm align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Plato / Receta</th>
+                    <th>Costo Fabricación</th>
+                    <th>Precio de Venta</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in platos %}
+                <tr>
+                    <td class="fw-bold text-capitalize">{{ p.nombre }}</td>
+                    <td class="text-danger">${{ p.costo_base }} CLP</td>
+                    <td class="text-success">${{ p.precio_actual }} CLP</td>
+                    <td class="text-center">
+                        <a href="/optimizacion/{{ p.id }}" class="btn btn-warning btn-sm fw-bold">⚡ Optimizar</a>
+                        <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#editPlato{{ p.id }}">✏️</button>
+                        <form action="/plato/eliminar/{{ p.id }}" method="POST" class="d-inline" onsubmit="return confirm('¿Seguro que deseas eliminar este plato? Se borrarán también sus competidores.');">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">🗑️</button>
+                        </form>
+                    </td>
+                </tr>
+
+                <div class="modal fade" id="editPlato{{ p.id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header bg-secondary text-white">
+                                <h5 class="modal-title">Editar {{ p.nombre }}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <form action="/plato/actualizar/{{ p.id }}" method="POST">
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Nombre del Plato</label>
+                                        <input type="text" name="nombre" class="form-control" value="{{ p.nombre }}" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Precio de Venta ($)</label>
+                                        <input type="number" name="precio_actual" class="form-control" value="{{ p.precio_actual }}" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted small">Nota: Deja los ingredientes vacíos si no deseas alterar el costo de fabricación actual.</label>
+                                        <div class="border p-2 rounded bg-light" style="max-height: 120px; overflow-y: auto;">
+                                            {% for ing in ingredientes %}
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="ingredientes" value="{{ ing.id }}">
+                                                <label class="form-check-label">{{ ing.nombre }}</label>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="submit" class="btn btn-primary">Actualizar Cambios</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

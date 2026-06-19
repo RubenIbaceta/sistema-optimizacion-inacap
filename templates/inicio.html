@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="row mb-4 align-items-stretch">
+    
+    <div class="col-md-6 mb-3">
+        <div class="p-4 bg-white rounded-3 shadow-sm border h-100 d-flex flex-column justify-content-between">
+            <div>
+                <h1 class="display-6 fw-bold text-dark mb-3">📊 Sistema de Optimización de Precios</h1>
+                <p class="text-muted fs-6">
+                    Prototipo tecnológico desarrollado para el local de comida de INACAP Valparaíso. Esta herramienta automatiza el cálculo de costos base y aplica modelos de cálculo diferencial para encontrar el precio estratégico de venta que maximiza las ganancias del negocio.
+                </p>
+                <hr class="my-3">
+                
+                <h6 class="fw-bold text-primary">🧠 Fundamentos Matemáticos:</h6>
+                <ul class="list-group list-group-flush mb-3 small">
+                    <li class="list-group-item bg-transparent ps-0 py-1">
+                        📈 <strong>Modelamiento de Funciones:</strong> Demanda lineal decreciente y utilidad económica cuadrática.
+                    </li>
+                    <li class="list-group-item bg-transparent ps-0 py-1">
+                        ⚡ <strong>Criterio Marginal:</strong> Se calcula la derivada de la ganancia e iguala a cero ($G'(p) = 0$) para hallar el vértice máximo absoluto de la parábola.
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="d-flex flex-wrap gap-2 pt-2">
+                <a href="/gestion" class="btn btn-success fw-bold flex-grow-1 flex-md-grow-0 px-3">📋 Gestión (CRUD)</a>
+                <a href="/competencia" class="btn btn-warning text-dark fw-bold flex-grow-1 flex-md-grow-0 px-3">🔍 Precios Competencia</a>
+                <a href="/comparativa" class="btn btn-info text-white fw-bold flex-grow-1 flex-md-grow-0 px-3">Optimización 📊</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <div class="card shadow-sm border-start border-warning border-4 h-100 bg-white">
+            <div class="card-body p-4 d-flex flex-column justify-content-between">
+                <div>
+                    <h5 class="fw-bold text-warning-emphasis mb-3">💡 ¿Cómo interpretar el panel de optimización?</h5>
+                    <p class="text-muted small mb-3">Breve guía conceptual para la evaluación de los resultados analíticos generados por el motor:</p>
+                    
+                    <div class="row g-3 small">
+                        <div class="col-12 border-bottom pb-2">
+                            <strong>🎯 Precio Óptimo (P*):</strong> El valor ideal que equilibra perfectamente el volumen de clientes que compran con el margen de ganancia unitario.
+                        </div>
+                        <div class="col-12 border-bottom pb-2">
+                            <strong>📈 Ganancia Neta Máxima:</strong> La utilidad real y limpia que se queda en el negocio tras descontar los ingredientes invertidos.
+                        </div>
+                        <div class="col-12 border-bottom pb-2">
+                            <strong>💰 Ingreso Bruto Estimado:</strong> El flujo total de dinero en efectivo (Ventas totales) que registrará la caja.
+                        </div>
+                        <div class="col-12">
+                            <strong>⚠️ Umbral Crítico de Pérdida:</strong> El límite excesivo de precio donde el mercado se destruye y la demanda cae a cero.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row align-items-md-stretch text-center mt-2">
+    <div class="col-md-6 mb-4">
+        <div class="p-4 bg-light border rounded-3 shadow-sm">
+            <h4 class="text-success fw-bold">Módulo de Gestión de Costos</h4>
+            <p class="text-muted small mt-2 mb-0">
+                Administración de ingredientes y actualización de costos de adquisición para estructurar recetas y definir de forma dinámica el Costo Base ($C$).
+            </p>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="p-4 bg-light border rounded-3 shadow-sm">
+            <h4 class="text-info fw-bold">Estudio Marginal de Competidores</h4>
+            <p class="text-muted small mt-2 mb-0">
+                Monitoreo y paginación de competidores locales en la comuna de Valparaíso para evaluar promedios de mercado frente al modelo predictivo.
+            </p>
+        </div>
+    </div>
+</div>
+
+<footer class="pt-3 mt-2 text-muted border-top text-center small">
+    <strong>Asignatura:</strong> Cálculo Diferencial (Aplicación Práctica de Derivadas) | 
+    <strong>Integrantes:</strong> Ruben, Eduardo, Jesus | 
+    <strong>Institución:</strong> INACAP Valparaíso
+</footer>
+
+{% endblock %}
