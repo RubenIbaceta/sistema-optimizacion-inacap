@@ -369,21 +369,9 @@ def precargar_datos_ejemplo():
         
         db.session.commit()
 
+with app.app_context():
+    db.create_all()
+    precargar_datos_ejemplo()
+
 if __name__ == '__main__':
-    with app.app_context():
-        import os
-        # Usamos una variable de entorno de Flask para borrar el archivo SOLO en el proceso principal
-        if os.environ.get("FLASK_RUN_FROM_CLI") == "true" or os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
-            try:
-                if os.path.exists('instance/database.db'):
-                    os.remove('instance/database.db')
-                if os.path.exists('database.db'):
-                    os.remove('database.db')
-                print("¡Base de datos vieja eliminada con éxito!")
-            except Exception as e:
-                print(f"Aviso de limpieza: {e}")
-            
-        db.create_all()            # Crea la base de datos limpia y reluciente
-        precargar_datos_ejemplo()  # Inyecta automáticamente los 10 platos y 90 precios
-        
     app.run(debug=True)
