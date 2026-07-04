@@ -91,7 +91,6 @@ def gestion_competencia():
         
     platos = Plato.query.all()
     competencias = Competencia.query.all()
-    # MODIFICADO: Se pasa 'competencias=competencias' en español para que competencia.html la lea correctamente
     return render_template('competencia.html', platos=platos, competencias=competencias)
 
 @app.route('/comparativa', strict_slashes=False)
@@ -115,10 +114,6 @@ def datos_comparativa(plato_id):
         
     return jsonify({'locales': locales, 'precios': precios})
 
-
-# ==========================================
-# MOTOR MATEMÁTICO: DERIVADAS Y OPTIMIZACIÓN
-# ==========================================
 
 # ==========================================
 # RUTAS DE ELIMINACIÓN Y ACTUALIZACIÓN
@@ -167,6 +162,11 @@ def actualizar_competencia(comp_id):
     db.session.commit()
     return redirect(url_for('gestion_competencia'))
 
+
+# ==========================================
+# MOTOR MATEMÁTICO: DERIVADAS Y OPTIMIZACIÓN
+# ==========================================
+
 @app.route('/optimizacion/<int:plato_id>')
 def optimizar(plato_id):
     plato = Plato.query.get_or_404(plato_id)
@@ -180,7 +180,7 @@ def optimizar(plato_id):
     
     # --- MODELAMIENTO MATEMÁTICO CON SYMPY ---
     p = sp.Symbol('p')    # Variable de decisión: Precio de venta
-    C = plato.costo_base  # Costo base de fabricación del plato
+    C = float(plato.costo_base)  # Costo base de fabricación del plato (asegurar que sea float exacto)
     
     # Estimación de la Demanda lineal decreciente: Q(p) = a - b*p
     max_demanda = 200  
@@ -197,21 +197,28 @@ def optimizar(plato_id):
     soluciones = sp.solve(derivada_ganancia, p)
     precio_optimo = float(soluciones[0])
     
-    # Calcular la Ganancia Máxima del vértice (Techo Económico Libre de Costos)
-    ganancia_maxima = float(ganancia.subs(p, precio_optimo))
-    
     # Calcular cuántas unidades (demanda) corresponden a ese precio óptimo
     unidades_optimas = float(q.subs(p, precio_optimo))
     
+    # Redondear valores antes de calcular para evitar discrepancias en moneda CLP (enteros)
+    precio_optimo_redondeado = round(precio_optimo)
+    unidades_optimas_redondeado = round(unidades_optimas)
+    costo_base_redondeado = round(C)
+    
+    # Calcular la Ganancia Máxima usando valores redondeados
+    # Ganancia = (Precio - Costo) * Unidades
+    ganancia_maxima = (precio_optimo_redondeado - costo_base_redondeado) * unidades_optimas_redondeado
+    
     # --- CÁLCULO DE INGRESO BRUTO TOTAL ---
-    # Multiplicación directa del precio óptimo por las unidades vendidas en la caja
-    ingreso_total = precio_optimo * unidades_optimas
+    # Multiplicación de los valores redondeados
+    ingreso_total = precio_optimo_redondeado * unidades_optimas_redondeado
     
     # --- CÁLCULO DE RAÍCES: Encontrar el precio límite superior (Punto de Quiebre) ---
     # Igualamos la función de ganancia a 0 para buscar los puntos de corte con el eje X
     raices = sp.solve(ganancia, p)
     # Tomamos el valor más alto, que representa el precio excesivo donde la ganancia vuelve a ser 0
-    precio_limite_perdida = float(max(raices)) if raices else precio_promedio_competencia * 2
+    precio_limite_perdida_exacto = float(max(raices)) if raices else precio_promedio_competencia * 2
+    precio_limite_perdida = round(precio_limite_perdida_exacto)
     
     # Construcción de puntos de la parábola para graficar en la interfaz
     puntos_precio = []
@@ -222,22 +229,29 @@ def optimizar(plato_id):
     rango_max = int(precio_promedio_competencia * 2)
     paso = int((rango_max - rango_min) / 15) if (rango_max - rango_min) > 15 else 1
     
-    for pr in range(rango_min, rango_max, paso):
+    # MODIFICACIÓN OPTIMIZADA: Convertimos las expresiones analíticas en funciones rápidas de Python
+    ganancia_func = sp.lambdify(p, ganancia, 'math')
+    demanda_func = sp.lambdify(p, q, 'math')
+    
+    # MODIFICACIÓN CRÍTICA: Se agrega "+ paso" al límite de range() para incluir las últimas iteraciones
+    for pr in range(rango_min, rango_max + paso, paso):
         puntos_precio.append(pr)
-        puntos_ganancia.append(float(ganancia.subs(p, pr)))
-        puntos_unidades.append(float(q.subs(p, pr)))
+        puntos_ganancia.append(float(ganancia_func(pr)))
+        puntos_unidades.append(float(demanda_func(pr)))
 
     # Retorna la vista con los datos analíticos y las listas para ambos gráficos
     return render_template('optimizacion.html', 
-                           plato=plato, 
-                           precio_optimo=round(precio_optimo), 
-                           ganancia_maxima=round(ganancia_maxima),
-                           unidades_optimas=round(unidades_optimas),
-                           ingreso_total=round(ingreso_total),
-                           precio_limite_perdida=round(precio_limite_perdida),
+                           plato=plato,
+                           costo_base_display=costo_base_redondeado,
+                           precio_optimo=precio_optimo_redondeado, 
+                           ganancia_maxima=ganancia_maxima,
+                           unidades_optimas=unidades_optimas_redondeado,
+                           ingreso_total=ingreso_total,
+                           precio_limite_perdida=precio_limite_perdida,
                            puntos_precio=puntos_precio,
                            puntos_ganancia=puntos_ganancia,
                            puntos_unidades=puntos_unidades)
+
 # ==========================================
 # PRECARGA AUTOMÁTICA DE DATOS INICIALES
 # ==========================================
