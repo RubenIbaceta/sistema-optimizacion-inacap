@@ -1,6 +1,3 @@
-Aquí tienes el código completo de tu archivo `app.py`. Se han aplicado los dos cambios clave: el **cálculo continuo exacto** para que coincida al $100\%$ con las fórmulas analíticas de GeoGebra (evitando el error de arrastre por redondeos previos) y un **control de seguridad** para evitar que errores en el reloader de Flask (`debug=True`) dupliquen datos o generen conflictos al reiniciar la aplicación.
-
-```python
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
 import sympy as sp
