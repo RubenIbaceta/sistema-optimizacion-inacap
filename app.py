@@ -207,17 +207,15 @@ def optimizar(plato_id):
     if unidades_optimas_exactas < 0:
         unidades_optimas_exactas = 0.0
         
-    # --- CÁLCULOS CONTINUOS EXACTOS (Alineado con GeoGebra) ---
-    # Evaluamos las funciones originales directamente con el float exacto matemático antes de redondear
-    ganancia_maxima_exacta = float(ganancia.subs(p, precio_optimo_exacto))
-    ingreso_total_exacto = precio_optimo_exacto * unidades_optimas_exactas
-    
-    # --- REDONDEO FINAL EXCLUSIVO PARA DESPLIEGUE (Formato CLP entero) ---
+    # --- REDONDEO PREMATURO DE VARIABLES DE NEGOCIO (Para evitar discrepancias en CLP) ---
     precio_optimo_redondeado = round(precio_optimo_exacto)
     unidades_optimas_redondeado = round(unidades_optimas_exactas)
     costo_base_redondeado = round(C)
-    ganancia_maxima_redondeada = round(ganancia_maxima_exacta)
-    ingreso_total_redondeado = round(ingreso_total_exacto)
+    
+    # --- CÁLCULOS UTILIZANDO VALORES ENTEROS REDONDEADOS ---
+    # Al multiplicar enteros aquí, se garantiza que (Precio - Costo) * Unidades dé exacto en pantalla
+    ganancia_maxima_redondeada = (precio_optimo_redondeado - costo_base_redondeado) * unidades_optimas_redondeado
+    ingreso_total_redondeado = precio_optimo_redondeado * unidades_optimas_redondeado
     
     # --- CÁLCULO DE RAÍCES: Encontrar el precio límite superior ---
     raices = sp.solve(ganancia, p)
